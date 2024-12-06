@@ -1,12 +1,13 @@
 public class Task {
     private final String name;
     private final String description;
-    private final TaskStatus status = TaskStatus.NEW;
+    private TaskStatus status;
     public Integer id;
 
-    public Task(String name, String description) {
+    public Task(String name, String description, TaskStatus status) {
         this.name = name;
         this.description = description;
+        this.status = status;
     }
 
     public String getName() {
