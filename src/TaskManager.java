@@ -13,36 +13,35 @@ public class TaskManager {
         this.subTasks = new HashMap<>();
     }
 
-    public HashMap<Integer, Task> getTasks() {
-        return tasks;
+    public ArrayList<Task> getTasks() {
+        return new ArrayList<>(tasks.values());
     }
 
-    public HashMap<Integer, Epic> getEpics() {
-        return epics;
+    public ArrayList<Epic> getEpics() {
+        return new ArrayList<>(epics.values());
     }
 
-    public HashMap<Integer, SubTask> getSubTasks() {
-        return subTasks;
+    public ArrayList<SubTask> getSubTasks() {
+        return new ArrayList<>(subTasks.values());
     }
 
     public void createTask(Task newTask) {
         idCounter++;
-        tasks.put(idCounter, newTask);
         newTask.setId(idCounter);
+        tasks.put(newTask.getId(), newTask);
     }
 
     public void createEpic(Epic newEpic) {
         idCounter++;
-        epics.put(idCounter, newEpic);
         newEpic.setId(idCounter);
+        epics.put(newEpic.getId(), newEpic);
     }
 
-    public void createSubTask(SubTask newSubTask, Epic epic) {
+    public void createSubTask(SubTask newSubTask) {
         idCounter++;
-        subTasks.put(idCounter, newSubTask);
-        newSubTask.setEpic(epic);
         newSubTask.setId(idCounter);
-        epic.addSubTusk(newSubTask);
+        subTasks.put(newSubTask.getId(), newSubTask);
+        newSubTask.getEpic().addSubTusk(newSubTask);
     }
 
     public void updateTask(Task updatedTask) {
@@ -58,6 +57,7 @@ public class TaskManager {
             ArrayList<SubTask> subTasks = epics.get(updatedEpicId).getSubTasks();
             updatedEpic.setSubTasks(subTasks);
             epics.replace(updatedEpicId, updatedEpic);
+            updatedEpic.updateEpicStatus();
         }
     }
 
@@ -86,26 +86,46 @@ public class TaskManager {
     public void deleteSubtaskById(Integer subtaskId) {
         SubTask subTask = subTasks.get(subtaskId);
         subTask.getEpic().getSubTasks().remove(subTask);
+        subTask.getEpic().updateEpicStatus();
         subTasks.remove(subtaskId);
     }
 
     public void deleteAllTasks() {
         tasks.clear();
+    }
+
+    public void deleteAllEpics() {
         epics.clear();
+        subTasks.clear();
+    }
+
+    public void deleteAllSubTasks() {
+        for (Epic epic : epics.values()) {
+            epic.getSubTasks().clear();
+            epic.updateEpicStatus();
+        }
         subTasks.clear();
     }
 
     public Task getTaskById(Integer taskId) {
         if (tasks.containsKey(taskId)) {
             return tasks.get(taskId);
-        } else if (epics.containsKey(taskId)) {
-            return epics.get(taskId);
-        } else if (subTasks.containsKey(taskId)) {
-            return subTasks.get(taskId);
         }
-
         return null;
+    }
 
+    public Epic getEpicByID(Integer epicId) {
+        if (epics.containsKey(epicId)) {
+            return epics.get(epicId);
+        }
+        return null;
+    }
+
+    public SubTask getSubTaskByID(Integer subTaskId) {
+        if (subTasks.containsKey(subTaskId)) {
+            return subTasks.get(subTaskId);
+        }
+        return null;
     }
 
     public ArrayList<SubTask> getSubTasksInEpic(Integer epicId) {
@@ -115,33 +135,5 @@ public class TaskManager {
         } else {
             return new ArrayList<>();
         }
-    }
-
-    public ArrayList<String> getAllTasksNames() {
-        ArrayList<String> allTaskNames = new ArrayList<>();
-
-        for (Task task : tasks.values()) {
-            allTaskNames.add(task.getName());
-        }
-
-        for (Epic epic : epics.values()) {
-            allTaskNames.add(epic.getName());
-        }
-
-        for (SubTask subTask : subTasks.values()) {
-            allTaskNames.add(subTask.getName());
-        }
-
-        return allTaskNames;
-    }
-
-    public ArrayList<Task> getAllTasks() {
-        ArrayList<Task> allTasks = new ArrayList<>();
-
-        allTasks.addAll(tasks.values());
-        allTasks.addAll(epics.values());
-        allTasks.addAll(subTasks.values());
-
-        return allTasks;
     }
 }
