@@ -1,3 +1,5 @@
+import java.util.Objects;
+
 public class Task {
     private final String name;
     private final String description;
@@ -8,6 +10,13 @@ public class Task {
         this.name = name;
         this.description = description;
         this.status = status;
+    }
+
+    public Task(Task task) {
+        this.name = task.name;
+        this.description = task.description;
+        this.status = task.status;
+        this.id = task.id;
     }
 
     public String getName() {
@@ -29,4 +38,13 @@ public class Task {
     public Integer getId() {
         return id;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Task task = (Task) obj;
+        return Objects.equals(id, task.id);
+    }
+
 }
