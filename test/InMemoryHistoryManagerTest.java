@@ -23,6 +23,14 @@ public class InMemoryHistoryManagerTest {
     }
 
     @Test
+    public void testRemoveTaskToHistory() {
+        historyManager.add(task);
+        historyManager.remove(task.getId());
+        final ArrayList<Task> history = historyManager.getHistory();
+        assertEquals(0, history.size(), "Задача не была добавлена");
+    }
+
+    @Test
     public void testTaskHistoryMaintainsPreviousVersion() {
         historyManager.add(task);
         task.setId(5);
@@ -45,7 +53,6 @@ public class InMemoryHistoryManagerTest {
         assertEquals(originalStatus, task.getStatus(), "Статус задачи был изменён");
         assertEquals(originalId, task.getId(), "Айди задачи был изменен");
     }
-
 
 
     @Test
