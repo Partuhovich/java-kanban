@@ -47,4 +47,14 @@ public class Task {
         return Objects.equals(id, task.id);
     }
 
+    @Override
+    public String toString() {
+        return "{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", status=" + status +
+                '}';
+    }
+
 }
