@@ -43,5 +43,4 @@ public class InMemoryTaskManagerTest {
 
         assertEquals(retrievedTask.getDescription(), retrievedTask2.getDescription(), "Задачи конфликтуют");
     }
-
 }

@@ -41,5 +41,4 @@ public class TaskTest {
         subTask2.setId(1);
         assertEquals(subTask1, subTask2, "Задачи не равны");
     }
-
 }
