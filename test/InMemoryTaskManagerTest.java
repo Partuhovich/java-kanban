@@ -20,10 +20,9 @@ public class InMemoryTaskManagerTest {
     public void testAddAndGetDifferentTaskTypes() {
         Task task = new Task("Task", "Description", TaskStatus.NEW);
         Epic epic = new Epic("Epic", "Description", TaskStatus.NEW);
-        SubTask subTask = new SubTask("SubTask", "Description", TaskStatus.NEW, epic);
-
         taskManager.createTask(task);
         taskManager.createEpic(epic);
+        SubTask subTask = new SubTask("SubTask", "Description", TaskStatus.NEW, epic.getId());
         taskManager.createSubTask(subTask);
 
         assertEquals(task, taskManager.getTaskById(task.getId()), "Задача не была найдена");
@@ -41,8 +40,6 @@ public class InMemoryTaskManagerTest {
         task2.setId(4);
         Task retrievedTask = taskManager.getTaskById(task1.getId());
         Task retrievedTask2 = taskManager.getTaskById(task2.getId());
-        System.out.print(retrievedTask.getName());
-        System.out.print(retrievedTask2.getName());
 
         assertEquals(retrievedTask.getDescription(), retrievedTask2.getDescription(), "Задачи конфликтуют");
     }

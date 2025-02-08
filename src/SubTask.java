@@ -1,17 +1,22 @@
 public class SubTask extends Task {
-    private Epic epic;
+    private Integer epicId;
     private TaskStatus status;
+    private TaskType type = TaskType.SUBTASK;
 
-    public SubTask(String name, String description, TaskStatus status, Epic epic) {
+    public SubTask(String name, String description, TaskStatus status, Integer epicId) {
         super(name, description, status);
-        this.epic = epic;
+        this.epicId = epicId;
     }
 
-    public Epic getEpic() {
-        return epic;
+    public TaskType getType() {
+        return TaskType.SUBTASK; // Переопределяем метод для возврата правильного типа
     }
 
-    public void setEpic(Epic epic) {
-        this.epic = epic;
+    public Integer getEpicId() {
+        return epicId;
+    }
+
+    public void setEpicId(Integer epicId) {
+        this.epicId = epicId;
     }
 }

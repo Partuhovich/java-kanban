@@ -6,6 +6,7 @@ public class Task {
     private TaskStatus status;
     public Integer id;
 
+
     public Task(String name, String description, TaskStatus status) {
         this.name = name;
         this.description = description;
@@ -39,6 +40,10 @@ public class Task {
         return id;
     }
 
+    public TaskType getType() {
+        return TaskType.TASK;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -52,6 +57,7 @@ public class Task {
         return "{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
+                ", type='" + getType() + '\'' +
                 ", description='" + description + '\'' +
                 ", status=" + status +
                 '}';
