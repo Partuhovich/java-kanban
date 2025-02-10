@@ -16,20 +16,9 @@ public class FileBackedTaskManagerTest {
     }
 
     @Test
-    public void testSaveAndLoadEmptyFile() {
-        manager.save();
-        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
-
-        assertEquals(0, loadedManager.getTasks().size(), "Загруженный менеджер должен должен содержать 0 задач.");
-        assertEquals(0, loadedManager.getEpics().size(), "Загруженный менеджер должен содержать 0 эпиков.");
-        assertEquals(0, loadedManager.getSubTasks().size(), "Загруженный менеджер должен содержать 0 подзадач.");
-    }
-
-    @Test
     public void testSaveMultipleTasks() {
         manager.createTask(new Task("Task 1", "Description 1", TaskStatus.NEW));
         manager.createTask(new Task("Task 2", "Description 2", TaskStatus.NEW));
-        manager.save();
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 
@@ -40,7 +29,6 @@ public class FileBackedTaskManagerTest {
     public void testSaveMultipleEpics() {
         manager.createEpic(new Epic("Epic 1", "Description 1", TaskStatus.NEW));
         manager.createEpic(new Epic("Epic 2", "Description 2", TaskStatus.NEW));
-        manager.save();
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 
@@ -53,7 +41,6 @@ public class FileBackedTaskManagerTest {
         manager.createEpic(epic);
         manager.createSubTask(new SubTask("SubTask 1", "Description 1", TaskStatus.NEW, epic.getId()));
         manager.createSubTask(new SubTask("SubTask 2", "Description 2", TaskStatus.NEW, epic.getId()));
-        manager.save();
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 
@@ -64,7 +51,6 @@ public class FileBackedTaskManagerTest {
     public void testLoadMultipleTasks() {
         manager.createTask(new Task("Task 1", "Description 1", TaskStatus.NEW));
         manager.createTask(new Task("Task 2", "Description 2", TaskStatus.NEW));
-        manager.save();
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 
@@ -82,7 +68,6 @@ public class FileBackedTaskManagerTest {
     public void testLoadMultipleEpics() {
         manager.createEpic(new Epic("Epic 1", "Description 1", TaskStatus.NEW));
         manager.createEpic(new Epic("Epic 2", "Description 2", TaskStatus.NEW));
-        manager.save();
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 
@@ -104,8 +89,6 @@ public class FileBackedTaskManagerTest {
         SubTask sub2 = new SubTask("SubTask 2", "Description 2", TaskStatus.NEW, epic.getId());
         manager.createSubTask(sub1);
         manager.createSubTask(sub2);
-        manager.save();
-
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 

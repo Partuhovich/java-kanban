@@ -63,24 +63,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         save();
     }
 
-
-    public void save() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            writer.write("id,type,name,status,description,epic\n");
-            for (Task task : getTasks()) {
-                writer.write(toString(task) + "\n");
-            }
-            for (Epic epic : getEpics()) {
-                writer.write(toString(epic) + "\n");
-            }
-            for (SubTask subtask : getSubTasks()) {
-                writer.write(toString(subtask) + "\n");
-            }
-        } catch (IOException e) {
-            throw new ManagerSaveException("Ошибка при сохранении данных в файл", e);
-        }
-    }
-
     public static FileBackedTaskManager loadFromFile(File file) {
         FileBackedTaskManager manager = new FileBackedTaskManager(file);
         try {
@@ -107,6 +89,23 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             throw new ManagerSaveException("Ошибка при загрузке данных из файла", e);
         }
         return manager;
+    }
+
+    private void save() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write("id,type,name,status,description,epic\n");
+            for (Task task : getTasks()) {
+                writer.write(toString(task) + "\n");
+            }
+            for (Epic epic : getEpics()) {
+                writer.write(toString(epic) + "\n");
+            }
+            for (SubTask subtask : getSubTasks()) {
+                writer.write(toString(subtask) + "\n");
+            }
+        } catch (IOException e) {
+            throw new ManagerSaveException("Ошибка при сохранении данных в файл", e);
+        }
     }
 
     private String toString(Task task) {

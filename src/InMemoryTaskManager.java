@@ -49,7 +49,6 @@ public class InMemoryTaskManager implements TaskManager {
         idCounter++;
         newSubTask.setId(idCounter);
         subTasks.put(newSubTask.getId(), newSubTask);
-        System.out.println(newSubTask.getEpicId());
         epics.get(newSubTask.getEpicId()).addSubTusk(newSubTask);
     }
 
