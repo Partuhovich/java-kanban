@@ -62,5 +62,4 @@ public class InMemoryHistoryManagerTest {
         ArrayList<Task> history = historyManager.getHistory();
         assertEquals(1, history.size(), "Дупликат не удалился");
     }
-
 }

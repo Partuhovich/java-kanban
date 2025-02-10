@@ -5,7 +5,9 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     private Node head;
     private Node tail;
+    private boolean isChanged = false;
     private final HashMap<Integer, Node> taskMap = new HashMap<>();
+    private final ArrayList<Task> tasksList = new ArrayList<>();
 
     @Override
     public void add(Task task) {
@@ -13,6 +15,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         Node newNode = new Node(new Task(task));
         linkLast(newNode);
         taskMap.put(task.getId(), newNode);
+        isChanged = true;
     }
 
     @Override
@@ -21,6 +24,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (nodeToRemove != null) {
             removeNode(nodeToRemove);
         }
+        isChanged = true;
     }
 
     @Override
@@ -55,11 +59,12 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     private ArrayList<Task> getTasks() {
-        ArrayList<Task> tasksList = new ArrayList<>();
-        for (Node current = head; current != null; current = current.next) {
-            tasksList.add(current.task);
+        if (isChanged) {
+            tasksList.clear();
+            for (Node current = head; current != null; current = current.next) {
+                tasksList.add(current.task);
+            }
         }
         return tasksList;
     }
-
 }

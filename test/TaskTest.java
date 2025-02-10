@@ -16,8 +16,8 @@ public class TaskTest {
         task2 = new Task("Task 1", "Description 1", TaskStatus.NEW);
         epic1 = new Epic("Epic 1", "Description 1", TaskStatus.NEW);
         epic2 = new Epic("Epic 2", "Description 2", TaskStatus.NEW);
-        subTask1 = new SubTask("SubTask 1", "Description 1", TaskStatus.NEW, epic1);
-        subTask2 = new SubTask("SubTask 1", "Description 1", TaskStatus.NEW, epic1);
+        subTask1 = new SubTask("SubTask 1", "Description 1", TaskStatus.NEW, epic1.getId());
+        subTask2 = new SubTask("SubTask 1", "Description 1", TaskStatus.NEW, epic1.getId());
     }
 
 
@@ -41,5 +41,4 @@ public class TaskTest {
         subTask2.setId(1);
         assertEquals(subTask1, subTask2, "Задачи не равны");
     }
-
 }

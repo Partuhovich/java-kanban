@@ -37,6 +37,11 @@ public class Epic extends Task {
         }
     }
 
+    @Override
+    public TaskType getType() {
+        return TaskType.EPIC; // Переопределяем метод для возврата правильного типа
+    }
+
     public void updateEpicStatus() {
         boolean allDone = true;
         boolean allNew = true;
