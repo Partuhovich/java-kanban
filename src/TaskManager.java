@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 
 public interface TaskManager {
+    void setIdCounter(int newIdCounter);
+
     void createTask(Task newTask);
 
     void createEpic(Epic newEpic);
@@ -32,6 +34,14 @@ public interface TaskManager {
     SubTask getSubTaskByID(Integer subTaskId);
 
     ArrayList<SubTask> getSubTasksInEpic(Integer epicId);
+
+    void addToPrioritizedTasks(Task task);
+
+    ArrayList<Task> getPrioritizedTasks();
+
+    boolean isTasksOverlap(Task task1, Task task2);
+
+    void validateTaskOverlap(Task newTask);
 
     ArrayList<Task> getTasks();
 

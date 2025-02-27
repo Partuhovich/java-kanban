@@ -1,13 +1,11 @@
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeAll;
 
-public class InMemoryTaskManagerTest {
-    private static InMemoryTaskManager taskManager;
+public class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
-    @BeforeAll
-    public static void setUp() {
-        taskManager = new InMemoryTaskManager();
+    @Override
+    protected InMemoryTaskManager createTaskManager() {
+        return new InMemoryTaskManager();
     }
 
     @Test
@@ -37,7 +35,7 @@ public class InMemoryTaskManagerTest {
         task2.setId(1);
         taskManager.createTask(task1);
         taskManager.createTask(task2);
-        task2.setId(4);
+        task2.setId(task1.getId());
         Task retrievedTask = taskManager.getTaskById(task1.getId());
         Task retrievedTask2 = taskManager.getTaskById(task2.getId());
 

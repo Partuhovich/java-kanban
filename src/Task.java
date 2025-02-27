@@ -5,16 +5,10 @@ import java.time.Duration;
 public class Task {
     private final String name;
     private final String description;
-    private TaskStatus status;
-    public Integer id;
-    private Duration duration;
-    private LocalDateTime startTime;
-
-    public Task(String name, String description, TaskStatus status) {
-        this.name = name;
-        this.description = description;
-        this.status = status;
-    }
+    protected TaskStatus status;
+    private Integer id;
+    protected Duration duration;
+    protected LocalDateTime startTime;
 
     public Task(String name, String description, TaskStatus status, Duration duration, LocalDateTime startTime) {
         this.name = name;
@@ -22,6 +16,14 @@ public class Task {
         this.status = status;
         this.duration = duration;
         this.startTime = startTime;
+    }
+
+    public Task(String name, String description, TaskStatus status) {
+        this.name = name;
+        this.description = description;
+        this.status = status;
+        this.duration = null;
+        this.startTime = null;
     }
 
     public Task(Task task) {

@@ -4,12 +4,22 @@ import java.time.Duration;
 
 public class Epic extends Task {
     private ArrayList<SubTask> subTasks;
-    private TaskStatus status;
-    private LocalDateTime endTime; // Время завершения эпика
+    private LocalDateTime endTime;
 
     public Epic(String name, String description, TaskStatus status) {
         super(name, description, status, null, null);
         this.subTasks = new ArrayList<>();
+    }
+
+    @Override
+    public TaskType getType() {
+        return TaskType.EPIC;
+    }
+
+
+    @Override
+    public LocalDateTime getEndTime() {
+        return endTime;
     }
 
     public void updateEpicTiming() {
@@ -19,7 +29,6 @@ public class Epic extends Task {
             this.endTime = null;
             return;
         }
-
         LocalDateTime earliestStart = null;
         LocalDateTime latestEnd = null;
         Duration totalDuration = Duration.ZERO;
@@ -44,15 +53,10 @@ public class Epic extends Task {
         this.endTime = latestEnd;
     }
 
-    @Override
-    public LocalDateTime getEndTime() {
-        return endTime;
-    }
-
-    public void addSubTusk(SubTask newSubTask) {
+    public void addSubTask(SubTask newSubTask) {
         subTasks.add(newSubTask);
-        updateEpicStatus();
         updateEpicTiming();
+        updateEpicStatus();
     }
 
     public void updateSubTask(SubTask updatedSubTask) {
@@ -75,19 +79,27 @@ public class Epic extends Task {
         return (subTasks != null) ? subTasks : new ArrayList<>();
     }
 
+    public void removeSubTask(SubTask subTask) {
+        subTasks.remove(subTask);
+        updateEpicStatus();
+        updateEpicTiming();
+    }
+
+    public void cleatAllSubTasks() {
+        subTasks.clear();
+        updateEpicTiming();
+        updateEpicStatus();
+    }
+
     public void setSubTasks(ArrayList<SubTask> subTasks) {
         this.subTasks = subTasks;
+        updateEpicStatus();
+        updateEpicTiming();
     }
 
-    @Override
-    public TaskType getType() {
-        return TaskType.EPIC; // Переопределяем метод для возврата правильного типа
-    }
-
-    public void updateEpicStatus() {
+    private void updateEpicStatus() {
         boolean allDone = true;
         boolean allNew = true;
-
         for (SubTask subTask : subTasks) {
             if (subTask.getStatus() != TaskStatus.DONE) {
                 allDone = false;

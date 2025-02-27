@@ -4,21 +4,20 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class FileBackedTaskManagerTest {
+public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
 
-    private FileBackedTaskManager manager;
     private File tempFile;
 
-    @BeforeEach
-    public void setUp() throws IOException {
+    @Override
+    protected FileBackedTaskManager createTaskManager() throws IOException {
         tempFile = File.createTempFile("taskManager", ".txt");
-        manager = new FileBackedTaskManager(tempFile);
+        return new FileBackedTaskManager(tempFile);
     }
 
     @Test
     public void testSaveMultipleTasks() {
-        manager.createTask(new Task("Task 1", "Description 1", TaskStatus.NEW));
-        manager.createTask(new Task("Task 2", "Description 2", TaskStatus.NEW));
+        taskManager.createTask(new Task("Task 1", "Description 1", TaskStatus.NEW));
+        taskManager.createTask(new Task("Task 2", "Description 2", TaskStatus.NEW));
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 
@@ -27,8 +26,8 @@ public class FileBackedTaskManagerTest {
 
     @Test
     public void testSaveMultipleEpics() {
-        manager.createEpic(new Epic("Epic 1", "Description 1", TaskStatus.NEW));
-        manager.createEpic(new Epic("Epic 2", "Description 2", TaskStatus.NEW));
+        taskManager.createEpic(new Epic("Epic 1", "Description 1", TaskStatus.NEW));
+        taskManager.createEpic(new Epic("Epic 2", "Description 2", TaskStatus.NEW));
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 
@@ -38,9 +37,9 @@ public class FileBackedTaskManagerTest {
     @Test
     public void testSaveMultipleSubTasks() {
         Epic epic = new Epic("Epic 1", "Description 1", TaskStatus.NEW);
-        manager.createEpic(epic);
-        manager.createSubTask(new SubTask("SubTask 1", "Description 1", TaskStatus.NEW, epic.getId()));
-        manager.createSubTask(new SubTask("SubTask 2", "Description 2", TaskStatus.NEW, epic.getId()));
+        taskManager.createEpic(epic);
+        taskManager.createSubTask(new SubTask("SubTask 1", "Description 1", TaskStatus.NEW, epic.getId()));
+        taskManager.createSubTask(new SubTask("SubTask 2", "Description 2", TaskStatus.NEW, epic.getId()));
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 
@@ -49,8 +48,8 @@ public class FileBackedTaskManagerTest {
 
     @Test
     public void testLoadMultipleTasks() {
-        manager.createTask(new Task("Task 1", "Description 1", TaskStatus.NEW));
-        manager.createTask(new Task("Task 2", "Description 2", TaskStatus.NEW));
+        taskManager.createTask(new Task("Task 1", "Description 1", TaskStatus.NEW));
+        taskManager.createTask(new Task("Task 2", "Description 2", TaskStatus.NEW));
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 
@@ -66,8 +65,8 @@ public class FileBackedTaskManagerTest {
 
     @Test
     public void testLoadMultipleEpics() {
-        manager.createEpic(new Epic("Epic 1", "Description 1", TaskStatus.NEW));
-        manager.createEpic(new Epic("Epic 2", "Description 2", TaskStatus.NEW));
+        taskManager.createEpic(new Epic("Epic 1", "Description 1", TaskStatus.NEW));
+        taskManager.createEpic(new Epic("Epic 2", "Description 2", TaskStatus.NEW));
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 
@@ -84,11 +83,11 @@ public class FileBackedTaskManagerTest {
     @Test
     public void testLoadMultipleSubTasks() {
         Epic epic = new Epic("Epic 1", "Description 1", TaskStatus.NEW);
-        manager.createEpic(epic);
+        taskManager.createEpic(epic);
         SubTask sub1 = new SubTask("SubTask 1", "Description 1", TaskStatus.NEW, epic.getId());
         SubTask sub2 = new SubTask("SubTask 2", "Description 2", TaskStatus.NEW, epic.getId());
-        manager.createSubTask(sub1);
-        manager.createSubTask(sub2);
+        taskManager.createSubTask(sub1);
+        taskManager.createSubTask(sub2);
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 
