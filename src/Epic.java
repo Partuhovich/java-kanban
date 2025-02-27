@@ -16,7 +16,6 @@ public class Epic extends Task {
         return TaskType.EPIC;
     }
 
-
     @Override
     public LocalDateTime getEndTime() {
         return endTime;
@@ -29,24 +28,23 @@ public class Epic extends Task {
             this.endTime = null;
             return;
         }
-        LocalDateTime earliestStart = null;
-        LocalDateTime latestEnd = null;
-        Duration totalDuration = Duration.ZERO;
 
-        for (SubTask subTask : subTasks) {
-            if (subTask.getStartTime() != null) {
-                if (earliestStart == null || subTask.getStartTime().isBefore(earliestStart)) {
-                    earliestStart = subTask.getStartTime();
-                }
-                LocalDateTime subTaskEnd = subTask.getEndTime();
-                if (latestEnd == null || subTaskEnd.isAfter(latestEnd)) {
-                    latestEnd = subTaskEnd;
-                }
-                if (subTask.getDuration() != null) {
-                    totalDuration = totalDuration.plus(subTask.getDuration());
-                }
-            }
-        }
+        LocalDateTime earliestStart = subTasks.stream()
+                .map(SubTask::getStartTime)
+                .filter(startTime -> startTime != null)
+                .min(LocalDateTime::compareTo)
+                .orElse(null);
+
+        LocalDateTime latestEnd = subTasks.stream()
+                .map(SubTask::getEndTime)
+                .filter(endTime -> endTime != null)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
+
+        Duration totalDuration = subTasks.stream()
+                .map(SubTask::getDuration)
+                .filter(duration -> duration != null)
+                .reduce(Duration.ZERO, Duration::plus);
 
         this.setStartTime(earliestStart);
         this.setDuration(totalDuration);
@@ -60,19 +58,10 @@ public class Epic extends Task {
     }
 
     public void updateSubTask(SubTask updatedSubTask) {
-        int counter = 0;
-
-        for (SubTask subTask : subTasks) {
-
-            if (subTask.getId().equals(updatedSubTask.getId())) {
-                subTasks.remove(subTask);
-                subTasks.add(counter, updatedSubTask);
-                updateEpicStatus();
-                updateEpicTiming();
-                break;
-            }
-            counter++;
-        }
+        subTasks.removeIf(subTask -> subTask.getId().equals(updatedSubTask.getId()));
+        subTasks.add(updatedSubTask);
+        updateEpicStatus();
+        updateEpicTiming();
     }
 
     public ArrayList<SubTask> getSubTasks() {
@@ -98,16 +87,8 @@ public class Epic extends Task {
     }
 
     private void updateEpicStatus() {
-        boolean allDone = true;
-        boolean allNew = true;
-        for (SubTask subTask : subTasks) {
-            if (subTask.getStatus() != TaskStatus.DONE) {
-                allDone = false;
-            }
-            if (subTask.getStatus() != TaskStatus.NEW) {
-                allNew = false;
-            }
-        }
+        boolean allDone = subTasks.stream().allMatch(subTask -> subTask.getStatus() == TaskStatus.DONE);
+        boolean allNew = subTasks.stream().allMatch(subTask -> subTask.getStatus() == TaskStatus.NEW);
 
         if (allDone) {
             this.status = TaskStatus.DONE;

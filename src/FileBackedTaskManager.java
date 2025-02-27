@@ -67,10 +67,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public static FileBackedTaskManager loadFromFile(File file) {
         FileBackedTaskManager manager = new FileBackedTaskManager(file);
-        int newCounter = 0;
+        final int[] newCounter = {0};
+
         try {
             List<String> lines = Files.readAllLines(file.toPath());
-            for (String line : lines.subList(1, lines.size())) {
+            lines.stream().skip(1).forEach(line -> {
                 Task task = fromString(line);
                 if (task != null) {
                     switch (task.getType()) {
@@ -86,30 +87,42 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         default:
                             break;
                     }
-                    if (task.getId() > newCounter) {
-                        newCounter = task.getId();
+                    if (task.getId() > newCounter[0]) {
+                        newCounter[0] = task.getId();
                     }
                 }
-            }
+            });
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка при загрузке данных из файла", e);
         }
-        manager.setIdCounter(newCounter);
+        manager.setIdCounter(newCounter[0]);
         return manager;
     }
 
     private void save() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             writer.write("id,type,name,status,description,startTime,duration,epic\n");
-            for (Task task : getTasks()) {
-                writer.write(toString(task) + "\n");
-            }
-            for (Epic epic : getEpics()) {
-                writer.write(toString(epic) + "\n");
-            }
-            for (SubTask subtask : getSubTasks()) {
-                writer.write(toString(subtask) + "\n");
-            }
+            getTasks().forEach(task -> {
+                try {
+                    writer.write(toString(task) + "\n");
+                } catch (IOException e) {
+                    throw new ManagerSaveException("Ошибка при сохранении данных в файл", e);
+                }
+            });
+            getEpics().forEach(epic -> {
+                try {
+                    writer.write(toString(epic) + "\n");
+                } catch (IOException e) {
+                    throw new ManagerSaveException("Ошибка при сохранении данных в файл", e);
+                }
+            });
+            getSubTasks().forEach(subtask -> {
+                try {
+                    writer.write(toString(subtask) + "\n");
+                } catch (IOException e) {
+                    throw new ManagerSaveException("Ошибка при сохранении данных в файл", e);
+                }
+            });
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка при сохранении данных в файл", e);
         }

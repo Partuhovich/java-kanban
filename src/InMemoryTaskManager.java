@@ -2,6 +2,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> tasks;
@@ -21,7 +22,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void addToPrioritizedTasks(Task task) {
-        if(task.getStartTime() != null && task.getEndTime() != null) {
+        if (task.getStartTime() != null && task.getEndTime() != null) {
             prioritizedTasks.add(task);
         }
     }
@@ -128,11 +129,11 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteEpicById(Integer epicId) {
         Epic epic = epics.get(epicId);
         ArrayList<SubTask> epicSubTasks = epic.getSubTasks();
-        for (SubTask subTask : epicSubTasks) {
+        epicSubTasks.forEach(subTask -> {
             prioritizedTasks.remove(subTask);
             historyManager.remove(subTask.getId());
             subTasks.remove(subTask.getId());
-        }
+        });
         historyManager.remove(epicId);
         epics.remove(epicId);
     }
@@ -149,31 +150,23 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteAllTasks() {
-        for (Task task : tasks.values()) {
-            prioritizedTasks.remove(task);
-        }
+        tasks.values().forEach(prioritizedTasks::remove);
         tasks.clear();
     }
 
     @Override
     public void deleteAllEpics() {
-        for (Epic epic : epics.values()) {
-            for (SubTask subTask : epic.getSubTasks()) {
-                prioritizedTasks.remove(subTask);
-            }
-        }
+        epics.values().stream()
+                .flatMap(epic -> epic.getSubTasks().stream())
+                .forEach(prioritizedTasks::remove);
         epics.clear();
         subTasks.clear();
     }
 
     @Override
     public void deleteAllSubTasks() {
-        for (SubTask subTask : subTasks.values()) {
-            prioritizedTasks.remove(subTask);
-        }
-        for (Epic epic : epics.values()) {
-            epic.cleatAllSubTasks();
-        }
+        subTasks.values().forEach(prioritizedTasks::remove);
+        epics.values().forEach(Epic::cleatAllSubTasks);
         subTasks.clear();
     }
 
