@@ -2,7 +2,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> tasks;
@@ -212,7 +211,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public ArrayList<Task> getHistory() {
-        return historyManager.getHistory(); // Возвращаем копию списка истории
+        return historyManager.getHistory();
     }
 
     @Override
