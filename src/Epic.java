@@ -21,36 +21,6 @@ public class Epic extends Task {
         return endTime;
     }
 
-    public void updateEpicTiming() {
-        if (subTasks.isEmpty()) {
-            this.setStartTime(null);
-            this.setDuration(null);
-            this.endTime = null;
-            return;
-        }
-
-        LocalDateTime earliestStart = subTasks.stream()
-                .map(SubTask::getStartTime)
-                .filter(startTime -> startTime != null)
-                .min(LocalDateTime::compareTo)
-                .orElse(null);
-
-        LocalDateTime latestEnd = subTasks.stream()
-                .map(SubTask::getEndTime)
-                .filter(endTime -> endTime != null)
-                .max(LocalDateTime::compareTo)
-                .orElse(null);
-
-        Duration totalDuration = subTasks.stream()
-                .map(SubTask::getDuration)
-                .filter(duration -> duration != null)
-                .reduce(Duration.ZERO, Duration::plus);
-
-        this.setStartTime(earliestStart);
-        this.setDuration(totalDuration);
-        this.endTime = latestEnd;
-    }
-
     public void addSubTask(SubTask newSubTask) {
         subTasks.add(newSubTask);
         updateEpicTiming();
@@ -97,6 +67,36 @@ public class Epic extends Task {
         } else {
             this.status = TaskStatus.IN_PROGRESS;
         }
+    }
+
+    private void updateEpicTiming() {
+        if (subTasks.isEmpty()) {
+            this.setStartTime(null);
+            this.setDuration(null);
+            this.endTime = null;
+            return;
+        }
+
+        LocalDateTime earliestStart = subTasks.stream()
+                .map(SubTask::getStartTime)
+                .filter(startTime -> startTime != null)
+                .min(LocalDateTime::compareTo)
+                .orElse(null);
+
+        LocalDateTime latestEnd = subTasks.stream()
+                .map(SubTask::getEndTime)
+                .filter(endTime -> endTime != null)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
+
+        Duration totalDuration = subTasks.stream()
+                .map(SubTask::getDuration)
+                .filter(duration -> duration != null)
+                .reduce(Duration.ZERO, Duration::plus);
+
+        this.setStartTime(earliestStart);
+        this.setDuration(totalDuration);
+        this.endTime = latestEnd;
     }
 }
 

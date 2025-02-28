@@ -35,13 +35,7 @@ public interface TaskManager {
 
     ArrayList<SubTask> getSubTasksInEpic(Integer epicId);
 
-    void addToPrioritizedTasks(Task task);
-
     ArrayList<Task> getPrioritizedTasks();
-
-    boolean isTasksOverlap(Task task1, Task task2);
-
-    void validateTaskOverlap(Task newTask);
 
     ArrayList<Task> getTasks();
 

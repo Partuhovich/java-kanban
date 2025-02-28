@@ -20,13 +20,6 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void addToPrioritizedTasks(Task task) {
-        if (task.getStartTime() != null && task.getEndTime() != null) {
-            prioritizedTasks.add(task);
-        }
-    }
-
-    @Override
     public ArrayList<Task> getPrioritizedTasks() {
         return new ArrayList<>(prioritizedTasks);
     }
@@ -214,16 +207,14 @@ public class InMemoryTaskManager implements TaskManager {
         return historyManager.getHistory();
     }
 
-    @Override
-    public boolean isTasksOverlap(Task task1, Task task2) {
+    private boolean isTasksOverlap(Task task1, Task task2) {
         if (task1.getStartTime() == null || task2.getStartTime() == null) {
             return false;
         }
         return !(task1.getEndTime().isBefore(task2.getStartTime()) || task2.getEndTime().isBefore(task1.getStartTime()));
     }
 
-    @Override
-    public void validateTaskOverlap(Task newTask) {
+    private void validateTaskOverlap(Task newTask) {
         if (newTask.getStartTime() == null) {
             return;
         }
@@ -233,6 +224,12 @@ public class InMemoryTaskManager implements TaskManager {
 
         if (isOverlap) {
             throw new IllegalStateException("Задача пересекается по времени с другой задачей.");
+        }
+    }
+
+    private void addToPrioritizedTasks(Task task) {
+        if (task.getStartTime() != null && task.getEndTime() != null) {
+            prioritizedTasks.add(task);
         }
     }
 }
