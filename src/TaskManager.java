@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 
 public interface TaskManager {
+    void setIdCounter(int newIdCounter);
+
     void createTask(Task newTask);
 
     void createEpic(Epic newEpic);
@@ -32,6 +34,8 @@ public interface TaskManager {
     SubTask getSubTaskByID(Integer subTaskId);
 
     ArrayList<SubTask> getSubTasksInEpic(Integer epicId);
+
+    ArrayList<Task> getPrioritizedTasks();
 
     ArrayList<Task> getTasks();
 
