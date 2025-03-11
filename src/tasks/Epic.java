@@ -1,3 +1,5 @@
+package tasks;
+
 import java.util.ArrayList;
 import java.time.LocalDateTime;
 import java.time.Duration;
@@ -27,8 +29,8 @@ public class Epic extends Task {
         updateEpicStatus();
     }
 
-    public void updateSubTask(SubTask updatedSubTask) {
-        subTasks.removeIf(subTask -> subTask.getId().equals(updatedSubTask.getId()));
+    public void updateSubTask(SubTask updatedSubTask, Integer subTaskId) {
+        subTasks.removeIf(subTask -> subTask.getId().equals(subTaskId));
         subTasks.add(updatedSubTask);
         updateEpicStatus();
         updateEpicTiming();

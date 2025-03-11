@@ -1,3 +1,9 @@
+package managers;
+
+import tasks.Epic;
+import tasks.SubTask;
+import tasks.Task;
+
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -74,9 +80,8 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateTask(Task updatedTask) {
+    public void updateTask(Task updatedTask, Integer updatedTaskId) {
         validateTaskOverlap(updatedTask);
-        Integer updatedTaskId = updatedTask.getId();
         if (tasks.containsKey(updatedTaskId)) {
             Task replacedTask = tasks.get(updatedTaskId);
             tasks.replace(updatedTaskId, updatedTask);
@@ -86,8 +91,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateEpic(Epic updatedEpic) {
-        Integer updatedEpicId = updatedEpic.getId();
+    public void updateEpic(Epic updatedEpic, Integer updatedEpicId) {
         if (epics.containsKey(updatedEpicId)) {
             Epic replacedEpic = epics.get(updatedEpicId);
             ArrayList<SubTask> subTasks = replacedEpic.getSubTasks();
@@ -97,13 +101,12 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateSubTask(SubTask updatedSubTask) {
+    public void updateSubTask(SubTask updatedSubTask, Integer updatedSubTaskId) {
         validateTaskOverlap(updatedSubTask);
-        Integer updatedSubTaskId = updatedSubTask.getId();
         if (subTasks.containsKey(updatedSubTaskId)) {
             SubTask replacedSubTask = subTasks.get(updatedSubTaskId);
             subTasks.replace(updatedSubTaskId, updatedSubTask);
-            epics.get(updatedSubTask.getEpicId()).updateSubTask(updatedSubTask);
+            epics.get(updatedSubTask.getEpicId()).updateSubTask(updatedSubTask, updatedSubTaskId);
             prioritizedTasks.remove(replacedSubTask);
             addToPrioritizedTasks(updatedSubTask);
         }

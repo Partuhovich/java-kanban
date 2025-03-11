@@ -1,3 +1,9 @@
+package managers;
+
+import tasks.Epic;
+import tasks.SubTask;
+import tasks.Task;
+
 import java.util.ArrayList;
 
 public interface TaskManager {
@@ -9,11 +15,11 @@ public interface TaskManager {
 
     void createSubTask(SubTask newSubTask);
 
-    void updateTask(Task updatedTask);
+    void updateTask(Task updatedTask, Integer updatedTaskId);
 
-    void updateEpic(Epic updatedEpic);
+    void updateEpic(Epic updatedEpic, Integer updatedEpicId);
 
-    void updateSubTask(SubTask updatedSubTask);
+    void updateSubTask(SubTask updatedSubTask, Integer updatedSubTaskId);
 
     void deleteTaskById(Integer taskId);
 

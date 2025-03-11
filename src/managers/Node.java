@@ -1,3 +1,7 @@
+package managers;
+
+import tasks.Task;
+
 public class Node {
         public Task task;
         public Node prev;

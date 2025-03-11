@@ -1,4 +1,8 @@
+package server;
+
 import com.sun.net.httpserver.HttpExchange;
+import managers.TaskManager;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -19,9 +23,11 @@ public class BaseHttpHandler {
     }
 
     public void writeResponse(HttpExchange exchange, String responseString, int responseCode) throws IOException {
+        byte[] responseBytes = responseString.getBytes(StandardCharsets.UTF_8);
+        exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+        exchange.sendResponseHeaders(responseCode, responseBytes.length);
         try (OutputStream os = exchange.getResponseBody()) {
-            exchange.sendResponseHeaders(responseCode, 0);
-            os.write(responseString.getBytes());
+            os.write(responseBytes);
         }
         exchange.close();
     }
@@ -39,5 +45,14 @@ public class BaseHttpHandler {
     protected void sendInternalError(HttpExchange exchange) throws IOException {
         String response = "Внутренняя ошибка сервера.";
         sendText(exchange, response, 500);
+    }
+
+    protected Integer getId(HttpExchange exchange) {
+        String[] path = exchange.getRequestURI().getPath().split("/");
+        try {
+            return Integer.parseInt(path[2]);
+        } catch (NumberFormatException | IndexOutOfBoundsException e) {
+            return null;
+        }
     }
 }

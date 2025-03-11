@@ -1,3 +1,8 @@
+package managers;
+
+import exceptions.ManagerSaveException;
+import tasks.*;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.time.Duration;
@@ -30,20 +35,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void updateTask(Task updatedTask) {
-        super.updateTask(updatedTask);
+    public void updateTask(Task updatedTask, Integer updatedTaskId) {
+        super.updateTask(updatedTask, updatedTaskId);
         save();
     }
 
     @Override
-    public void updateEpic(Epic updatedEpic) {
-        super.updateEpic(updatedEpic);
+    public void updateEpic(Epic updatedEpic, Integer updatedEpicId) {
+        super.updateEpic(updatedEpic, updatedEpicId);
         save();
     }
 
     @Override
-    public void updateSubTask(SubTask updatedSubTask) {
-        super.updateSubTask(updatedSubTask);
+    public void updateSubTask(SubTask updatedSubTask, Integer updatedSubTaskId) {
+        super.updateSubTask(updatedSubTask, updatedSubTaskId);
         save();
     }
 
@@ -75,13 +80,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 Task task = fromString(line);
                 if (task != null) {
                     switch (task.getType()) {
-                        case TASK:
+                        case TaskType.TASK:
                             manager.createTask(task);
                             break;
-                        case EPIC:
+                        case TaskType.EPIC:
                             manager.createEpic((Epic) task);
                             break;
-                        case SUBTASK:
+                        case TaskType.SUBTASK:
                             manager.createSubTask((SubTask) task);
                             break;
                         default:
@@ -130,7 +135,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private String toString(Task task) {
         switch (task.getType()) {
-            case SUBTASK:
+            case TaskType.SUBTASK:
                 SubTask subtask = (SubTask) task;
                 return String.format("%d,%s,%s,%s,%s,%s,%s,%d",
                         subtask.getId(),
@@ -141,7 +146,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         subtask.getStartTime() != null ? subtask.getStartTime() : "",
                         subtask.getDuration() != null ? subtask.getDuration().toMinutes() : "",
                         subtask.getEpicId());
-            case EPIC:
+            case TaskType.EPIC:
                 Epic epic = (Epic) task;
                 return String.format("%d,%s,%s,%s,%s,%s,%s,",
                         epic.getId(),
@@ -151,7 +156,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         epic.getDescription(),
                         epic.getStartTime() != null ? epic.getStartTime() : "",
                         epic.getDuration() != null ? epic.getDuration().toMinutes() : "");
-            case TASK:
+            case TaskType.TASK:
                 return String.format("%d,%s,%s,%s,%s,%s,%s,",
                         task.getId(),
                         task.getType(),
@@ -177,17 +182,17 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         int epicId = parts.length > 7 ? Integer.parseInt(parts[7]) : -1;
 
         switch (type) {
-            case TASK:
+            case TaskType.TASK:
                 Task task = new Task(name, description, status, duration, startTime);
                 task.setId(id);
                 return task;
-            case EPIC:
+            case TaskType.EPIC:
                 Epic epic = new Epic(name, description, status);
                 epic.setId(id);
                 epic.setStartTime(startTime);
                 epic.setDuration(duration);
                 return epic;
-            case SUBTASK:
+            case TaskType.SUBTASK:
                 SubTask subtask = new SubTask(name, description, status, epicId, duration, startTime);
                 subtask.setId(id);
                 return subtask;
