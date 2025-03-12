@@ -92,7 +92,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                     sendText(exchange, "Задача успешно удалена!", 200);
                     break;
                 default:
-
+                    sendText(exchange, "Необрабатываемый метод", 400);
             }
         } catch (Exception e) {
             sendInternalError(exchange);

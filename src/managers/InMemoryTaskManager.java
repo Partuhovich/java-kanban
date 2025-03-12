@@ -64,6 +64,7 @@ public class InMemoryTaskManager implements TaskManager {
         idCounter++;
         newEpic.setId(idCounter);
         epics.put(newEpic.getId(), newEpic);
+        newEpic.updateEpicStatusAndTiming(newEpic.getEpicSubTasks(subTasks));
     }
 
     @Override
@@ -76,6 +77,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (epic != null) {
             epic.addSubTask(newSubTask);
             addToPrioritizedTasks(newSubTask);
+            epic.updateEpicStatusAndTiming(epic.getEpicSubTasks(subTasks));
         }
     }
 
@@ -93,22 +95,29 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateEpic(Epic updatedEpic, Integer updatedEpicId) {
         if (epics.containsKey(updatedEpicId)) {
+            for (Integer subTaskId : updatedEpic.getSubTasksIds()) {
+                if (!subTasks.containsKey(subTaskId)) {
+                    throw new IllegalArgumentException("Подзадача с ID " + subTaskId + " отсутствует в subTasks.");
+                }
+            }
             Epic replacedEpic = epics.get(updatedEpicId);
-            ArrayList<SubTask> subTasks = replacedEpic.getSubTasks();
-            updatedEpic.setSubTasks(subTasks);
             epics.replace(updatedEpicId, updatedEpic);
+            updatedEpic.setId(replacedEpic.getId());
+            updatedEpic.updateEpicStatusAndTiming(updatedEpic.getEpicSubTasks(subTasks));
         }
     }
 
     @Override
-    public void updateSubTask(SubTask updatedSubTask, Integer updatedSubTaskId) {
+    public void updateSubTask(SubTask updatedSubTask, Integer replacedSubTaskId) {
         validateTaskOverlap(updatedSubTask);
-        if (subTasks.containsKey(updatedSubTaskId)) {
-            SubTask replacedSubTask = subTasks.get(updatedSubTaskId);
-            subTasks.replace(updatedSubTaskId, updatedSubTask);
-            epics.get(updatedSubTask.getEpicId()).updateSubTask(updatedSubTask, updatedSubTaskId);
+        if (subTasks.containsKey(replacedSubTaskId)) {
+            SubTask replacedSubTask = subTasks.get(replacedSubTaskId);
+            subTasks.replace(replacedSubTaskId, updatedSubTask);
+            Epic epic = epics.get(replacedSubTask.getEpicId());
+            epics.get(updatedSubTask.getEpicId()).updateSubTask(updatedSubTask, replacedSubTaskId);
             prioritizedTasks.remove(replacedSubTask);
             addToPrioritizedTasks(updatedSubTask);
+            updatedEpic.updateEpicStatusAndTiming(updatedEpic.getEpicSubTasks(subTasks));
         }
     }
 
@@ -199,7 +208,8 @@ public class InMemoryTaskManager implements TaskManager {
     public ArrayList<SubTask> getSubTasksInEpic(Integer epicId) {
         if (epics.containsKey(epicId)) {
             Epic epic = epics.get(epicId);
-            return epic.getSubTasks();
+
+            return epic.getSubTasksIds();
         } else {
             return new ArrayList<>();
         }
