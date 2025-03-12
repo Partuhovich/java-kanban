@@ -14,6 +14,7 @@ import java.time.Duration;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 
 public class TasksHandler extends BaseHttpHandler implements HttpHandler {
     public TasksHandler(TaskManager taskManager) {
@@ -44,15 +45,17 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                                 String jsonResponse = gson.toJson(task);
                                 writeResponse(exchange, jsonResponse, 200);
                             } else {
-                                writeResponse(exchange, "Задача с ID " + taskId + " не найдена.", 404);
+                                sendText(exchange, "Задача с ID " + taskId + " не найдена.", 404);
                             }
                         } else {
-                            writeResponse(exchange, "Некорректный путь запроса.", 400);
+                            sendText(exchange, "Некорректный путь запроса.", 400);
                         }
                     } catch (NumberFormatException e) {
-                        writeResponse(exchange, "Некорректный ID задачи.", 400);
+                        sendText(exchange, "Некорректный ID задачи.", 400);
+                    } catch (NoSuchElementException e) {
+                        sendText(exchange, "Ошибка нахождения элемента: " + e.getMessage(), 404);
                     } catch (Exception e) {
-                        writeResponse(exchange, "Внутренняя ошибка сервера: " + e.getMessage(), 500);
+                        sendText(exchange, "Внутренняя ошибка сервера: " + e.getMessage(), 500);
                     }
                     break;
                 case "POST":
@@ -64,10 +67,9 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                             if (!jsonElement.isJsonObject()) {
                                 throw new IllegalArgumentException("Тело запроса должно быть JSON-объектом.");
                             }
-
                             Task task = gson.fromJson(body, Task.class);
                             taskManager.createTask(task);
-                            writeResponse(exchange, "Задача успешно создана.", 201);
+                            sendText(exchange, "Задача успешно создана.", 201);
 
                         } else if (pathSplit.length == 3) {
                             InputStream inputStream = exchange.getRequestBody();
@@ -79,12 +81,16 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
 
                             Task task = gson.fromJson(body, Task.class);
                             taskManager.updateTask(task, getId(exchange));
-                            writeResponse(exchange, "Задача успешно создана.", 201);
+                            sendText(exchange, "Задача успешно создана.", 201);
                         }
                     } catch (IllegalArgumentException e) {
-                        writeResponse(exchange, "Некорректный JSON: " + e.getMessage(), 400);
+                        sendText(exchange, "Ошибка запроса: " + e.getMessage(), 400);
+                    } catch (NoSuchElementException e) {
+                        sendText(exchange, "Ошибка нахождения элемента: " + e.getMessage(), 404);
+                    } catch (IllegalStateException e) {
+                        sendText(exchange, "Ошибка пересечения: " + e.getMessage(), 406);
                     } catch (Exception e) {
-                        writeResponse(exchange, "Внутренняя ошибка сервера: " + e.getMessage(), 500);
+                        sendText(exchange, "Внутренняя ошибка сервера: " + e.getMessage(), 500);
                     }
                     break;
                 case "DELETE":

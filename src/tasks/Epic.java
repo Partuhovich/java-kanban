@@ -3,7 +3,7 @@ package tasks;
 import java.util.ArrayList;
 import java.time.LocalDateTime;
 import java.time.Duration;
-import java.util.HashMap;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Epic extends Task {
@@ -21,43 +21,36 @@ public class Epic extends Task {
 
     public void addSubTask(SubTask newSubTask) {
         subTasksIds.add(newSubTask.getId());
-        updateEpicTiming();
-        updateEpicStatus();
     }
 
     public void updateSubTask(SubTask updatedSubTask, Integer subTaskToUpdateId) {
         subTasksIds.removeIf(subTaskId -> subTaskId.equals(subTaskToUpdateId));
         subTasksIds.add(updatedSubTask.getId());
-        updateEpicStatus();
-        updateEpicTiming();
     }
 
     public ArrayList<Integer> getSubTasksIds() {
-        return (subTasksIds != null) ? subTasksIds : new ArrayList<>();
+        return subTasksIds;
     }
 
     public void removeSubTask(SubTask subTask) {
         subTasksIds.removeIf(id -> id.equals(subTask.getId()));
-        updateEpicStatus();
-        updateEpicTiming();
     }
 
     public void cleatAllSubTasks() {
         subTasksIds.clear();
-        updateEpicTiming();
-        updateEpicStatus();
     }
 
     public void setSubTasksIds(ArrayList<Integer> subTasksIds) {
         this.subTasksIds = subTasksIds;
-        updateEpicStatus();
-        updateEpicTiming();
     }
 
-    public ArrayList<SubTask> getEpicSubTasks(HashMap<Integer, SubTask> allSubTasks) {
+    public ArrayList<SubTask> getEpicSubTasks(ArrayList<SubTask> allSubTasks) {
         return subTasksIds.stream()
-                .filter(allSubTasks::containsKey)
-                .map(allSubTasks::get)
+                .map(id -> allSubTasks.stream()
+                        .filter(subTask -> subTask.getId().equals(id))
+                        .findFirst()
+                        .orElse(null))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 

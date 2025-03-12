@@ -3,10 +3,10 @@ package server;
 import adapters.DurationAdapter;
 import adapters.LocalDateTimeAdapter;
 import com.google.gson.*;
-        import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import managers.TaskManager;
-import tasks.Task;
+import tasks.SubTask;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -14,6 +14,7 @@ import java.time.Duration;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 
 public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
     public SubTasksHandler(TaskManager taskManager) {
@@ -33,26 +34,28 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
                 case "GET":
                     try {
                         if (pathSplit.length == 2) {
-                            ArrayList<Task> tasks = taskManager.getTasks();
-                            String jsonResponse = gson.toJson(tasks);
+                            ArrayList<SubTask> subTasks = taskManager.getSubTasks();
+                            String jsonResponse = gson.toJson(subTasks);
                             writeResponse(exchange, jsonResponse, 200);
 
                         } else if (pathSplit.length == 3) {
-                            int taskId = getId(exchange);
-                            Task task = taskManager.getTaskById(taskId);
-                            if (task != null) {
-                                String jsonResponse = gson.toJson(task);
+                            int subTaskId = getId(exchange);
+                            SubTask subTask = taskManager.getSubTaskByID(subTaskId);
+                            if (subTask != null) {
+                                String jsonResponse = gson.toJson(subTask);
                                 writeResponse(exchange, jsonResponse, 200);
                             } else {
-                                writeResponse(exchange, "Задача с ID " + taskId + " не найдена.", 404);
+                                sendText(exchange, "Подзадача с ID " + subTaskId + " не найдена.", 404);
                             }
                         } else {
-                            writeResponse(exchange, "Некорректный путь запроса.", 400);
+                            sendText(exchange, "Некорректный путь запроса.", 400);
                         }
                     } catch (NumberFormatException e) {
-                        writeResponse(exchange, "Некорректный ID задачи.", 400);
+                        sendText(exchange, "Некорректный ID подзадачи.", 400);
+                    } catch (NoSuchElementException e) {
+                        sendText(exchange, "Ошибка нахождения элемента: " + e.getMessage(), 404);
                     } catch (Exception e) {
-                        writeResponse(exchange, "Внутренняя ошибка сервера: " + e.getMessage(), 500);
+                        sendText(exchange, "Внутренняя ошибка сервера: " + e.getMessage(), 500);
                     }
                     break;
                 case "POST":
@@ -65,9 +68,9 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
                                 throw new IllegalArgumentException("Тело запроса должно быть JSON-объектом.");
                             }
 
-                            Task task = gson.fromJson(body, Task.class);
-                            taskManager.createTask(task);
-                            writeResponse(exchange, "Задача успешно создана.", 201);
+                            SubTask subTask = gson.fromJson(body, SubTask.class);
+                            taskManager.createSubTask(subTask);
+                            sendText(exchange, "Подзадача успешно создана.", 201);
 
                         } else if (pathSplit.length == 3) {
                             InputStream inputStream = exchange.getRequestBody();
@@ -77,19 +80,27 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
                                 throw new IllegalArgumentException("Тело запроса должно быть JSON-объектом.");
                             }
 
-                            Task task = gson.fromJson(body, Task.class);
-                            taskManager.updateTask(task, getId(exchange));
-                            writeResponse(exchange, "Задача успешно создана.", 201);
+                            SubTask subTask = gson.fromJson(body, SubTask.class);
+                            taskManager.updateSubTask(subTask, getId(exchange));
+                            sendText(exchange, "Подзадача успешно обновлена.", 201);
                         }
                     } catch (IllegalArgumentException e) {
-                        writeResponse(exchange, "Некорректный JSON: " + e.getMessage(), 400);
+                        sendText(exchange, "Ошибка запроса: " + e.getMessage(), 400);
+                    } catch (NoSuchElementException e) {
+                        sendText(exchange, "Ошибка нахождения элемента: " + e.getMessage(), 404);
+                    } catch (IllegalStateException e) {
+                        sendText(exchange, "Ошибка пересечения: " + e.getMessage(), 406);
                     } catch (Exception e) {
-                        writeResponse(exchange, "Внутренняя ошибка сервера: " + e.getMessage(), 500);
+                        sendText(exchange, "Внутренняя ошибка сервера: " + e.getMessage(), 500);
                     }
                     break;
                 case "DELETE":
-                    taskManager.deleteTaskById(getId(exchange));
-                    sendText(exchange, "Задача успешно удалена!", 200);
+                    if (pathSplit.length == 3) {
+                        taskManager.deleteSubtaskById(getId(exchange));
+                        sendText(exchange, "Подзадача успешно удалена.", 200);
+                    } else {
+                        sendText(exchange, "Необходимо ввести ади задачи для удаления", 400);
+                    }
                     break;
                 default:
                     sendText(exchange, "Необрабатываемый метод", 400);

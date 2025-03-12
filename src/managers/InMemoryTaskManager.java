@@ -4,10 +4,7 @@ import tasks.Epic;
 import tasks.SubTask;
 import tasks.Task;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.TreeSet;
+import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> tasks;
@@ -64,7 +61,6 @@ public class InMemoryTaskManager implements TaskManager {
         idCounter++;
         newEpic.setId(idCounter);
         epics.put(newEpic.getId(), newEpic);
-        newEpic.updateEpicStatusAndTiming(newEpic.getEpicSubTasks(subTasks));
     }
 
     @Override
@@ -72,38 +68,41 @@ public class InMemoryTaskManager implements TaskManager {
         validateTaskOverlap(newSubTask);
         idCounter++;
         newSubTask.setId(idCounter);
-        subTasks.put(newSubTask.getId(), newSubTask);
-        Epic epic = epics.get(newSubTask.getEpicId());
-        if (epic != null) {
+        if (epics.containsKey(newSubTask.getEpicId())) {
+            subTasks.put(newSubTask.getId(), newSubTask);
+            Epic epic = epics.get(newSubTask.getEpicId());
             epic.addSubTask(newSubTask);
             addToPrioritizedTasks(newSubTask);
-            epic.updateEpicStatusAndTiming(epic.getEpicSubTasks(subTasks));
+            epic.updateEpicStatusAndTiming(epic.getEpicSubTasks(getSubTasks()));
+        } else {
+            throw new NoSuchElementException("Epic с ID " + newSubTask.getEpicId() + " отсутствует.");
         }
     }
 
     @Override
-    public void updateTask(Task updatedTask, Integer updatedTaskId) {
+    public void updateTask(Task updatedTask, Integer replacedTaskId) {
         validateTaskOverlap(updatedTask);
-        if (tasks.containsKey(updatedTaskId)) {
-            Task replacedTask = tasks.get(updatedTaskId);
-            tasks.replace(updatedTaskId, updatedTask);
+        if (tasks.containsKey(replacedTaskId)) {
+            Task replacedTask = tasks.get(replacedTaskId);
+            tasks.replace(replacedTaskId, updatedTask);
+            updatedTask.setId(replacedTaskId);
             prioritizedTasks.remove(replacedTask);
             addToPrioritizedTasks(updatedTask);
+        } else {
+            throw new NoSuchElementException("Task с ID " + replacedTaskId + " отсутствует.");
         }
     }
 
     @Override
-    public void updateEpic(Epic updatedEpic, Integer updatedEpicId) {
-        if (epics.containsKey(updatedEpicId)) {
-            for (Integer subTaskId : updatedEpic.getSubTasksIds()) {
-                if (!subTasks.containsKey(subTaskId)) {
-                    throw new IllegalArgumentException("Подзадача с ID " + subTaskId + " отсутствует в subTasks.");
-                }
-            }
-            Epic replacedEpic = epics.get(updatedEpicId);
-            epics.replace(updatedEpicId, updatedEpic);
-            updatedEpic.setId(replacedEpic.getId());
-            updatedEpic.updateEpicStatusAndTiming(updatedEpic.getEpicSubTasks(subTasks));
+    public void updateEpic(Epic updatedEpic, Integer replacedEpicId) {
+        if (epics.containsKey(replacedEpicId)) {
+            Epic replacedEpic = epics.get(replacedEpicId);
+            epics.replace(replacedEpicId, updatedEpic);
+            updatedEpic.setSubTasksIds(replacedEpic.getSubTasksIds());
+            updatedEpic.setId(replacedEpicId);
+            updatedEpic.updateEpicStatusAndTiming(updatedEpic.getEpicSubTasks(getSubTasks()));
+        } else {
+            throw new NoSuchElementException("Epic с ID " + replacedEpicId + " отсутствует.");
         }
     }
 
@@ -114,62 +113,80 @@ public class InMemoryTaskManager implements TaskManager {
             SubTask replacedSubTask = subTasks.get(replacedSubTaskId);
             subTasks.replace(replacedSubTaskId, updatedSubTask);
             Epic epic = epics.get(replacedSubTask.getEpicId());
-            epics.get(updatedSubTask.getEpicId()).updateSubTask(updatedSubTask, replacedSubTaskId);
-            prioritizedTasks.remove(replacedSubTask);
+            updatedSubTask.setId(replacedSubTask.getId());
+            updatedSubTask.setEpicId(replacedSubTask.getEpicId());
+            epic.updateSubTask(updatedSubTask, replacedSubTaskId);
+            prioritizedTasks.removeIf(prioritizedTask -> prioritizedTask.getId().equals(replacedSubTaskId));
             addToPrioritizedTasks(updatedSubTask);
-            updatedEpic.updateEpicStatusAndTiming(updatedEpic.getEpicSubTasks(subTasks));
+            epic.updateEpicStatusAndTiming(epic.getEpicSubTasks(getSubTasks()));
+        } else {
+            throw new NoSuchElementException("SubTask с ID " + replacedSubTaskId + " отсутствует.");
         }
     }
 
     @Override
     public void deleteTaskById(Integer taskId) {
-        Task task = tasks.get(taskId);
-        prioritizedTasks.remove(task);
-        historyManager.remove(taskId);
-        tasks.remove(taskId);
+        if (tasks.containsKey(taskId)) {
+            Task task = tasks.get(taskId);
+            prioritizedTasks.removeIf(prioritizedTask -> prioritizedTask.getId().equals(task.getId()));
+            historyManager.remove(taskId);
+            tasks.remove(taskId);
+        } else {
+            throw new NoSuchElementException("Task с ID " + taskId + " отсутствует.");
+        }
     }
 
     @Override
     public void deleteEpicById(Integer epicId) {
-        Epic epic = epics.get(epicId);
-        ArrayList<SubTask> epicSubTasks = epic.getSubTasks();
-        epicSubTasks.forEach(subTask -> {
-            prioritizedTasks.remove(subTask);
-            historyManager.remove(subTask.getId());
-            subTasks.remove(subTask.getId());
-        });
-        historyManager.remove(epicId);
-        epics.remove(epicId);
+        if (epics.containsKey(epicId)) {
+            Epic epic = epics.get(epicId);
+            ArrayList<Integer> epicSubTasksIds = epic.getSubTasksIds();
+            epicSubTasksIds.forEach(subTaskId -> {
+                SubTask subTask = subTasks.get(subTaskId);
+                prioritizedTasks.removeIf(prioritizedTask -> prioritizedTask.getId().equals(subTask.getId()));
+                historyManager.remove(subTaskId);
+                subTasks.remove(subTaskId);
+            });
+            historyManager.remove(epicId);
+            epics.remove(epicId);
+        } else {
+            throw new NoSuchElementException("Epic с ID " + epicId + " отсутствует.");
+        }
     }
 
     @Override
     public void deleteSubtaskById(Integer subtaskId) {
-        SubTask subTask = subTasks.get(subtaskId);
-        Epic epic = epics.get(subTask.getEpicId());
-        epic.removeSubTask(subTask);
-        prioritizedTasks.remove(subTask);
-        historyManager.remove(subtaskId);
-        subTasks.remove(subtaskId);
+        if (subTasks.containsKey(subtaskId)) {
+            SubTask subTask = subTasks.get(subtaskId);
+            Epic epic = epics.get(subTask.getEpicId());
+            epic.removeSubTask(subTask);
+            epic.updateEpicStatusAndTiming(epic.getEpicSubTasks(getSubTasks()));
+            prioritizedTasks.removeIf(prioritizedTask -> prioritizedTask.getId().equals(subTask.getId()));
+            historyManager.remove(subtaskId);
+            subTasks.remove(subtaskId);
+        } else {
+            throw new NoSuchElementException("SubTask с ID " + subtaskId + " отсутствует.");
+        }
     }
 
     @Override
     public void deleteAllTasks() {
-        tasks.values().forEach(prioritizedTasks::remove);
+        tasks.keySet().forEach(taskId -> prioritizedTasks.removeIf(prioritizedTask -> prioritizedTask.getId().equals(taskId)));
         tasks.clear();
     }
 
     @Override
     public void deleteAllEpics() {
         epics.values().stream()
-                .flatMap(epic -> epic.getSubTasks().stream())
-                .forEach(prioritizedTasks::remove);
+                .flatMap(epic -> epic.getSubTasksIds().stream())
+                .forEach(subTaskId -> prioritizedTasks.removeIf(prioritizedTask -> prioritizedTask.getId().equals(subTaskId)));
         epics.clear();
         subTasks.clear();
     }
 
     @Override
     public void deleteAllSubTasks() {
-        subTasks.values().forEach(prioritizedTasks::remove);
+        subTasks.keySet().forEach(subTaskId -> prioritizedTasks.removeIf(prioritizedTask -> prioritizedTask.getId().equals(subTaskId)));
         epics.values().forEach(Epic::cleatAllSubTasks);
         subTasks.clear();
     }
@@ -180,8 +197,9 @@ public class InMemoryTaskManager implements TaskManager {
             Task task = tasks.get(taskId);
             historyManager.add(task);
             return task;
+        } else {
+            throw new NoSuchElementException("Task с ID " + taskId + " отсутствует.");
         }
-        return null;
     }
 
     @Override
@@ -190,8 +208,9 @@ public class InMemoryTaskManager implements TaskManager {
             Epic epic = epics.get(epicId);
             historyManager.add(epic);
             return epic;
+        } else {
+            throw new NoSuchElementException("Epic с ID " + epicId + " отсутствует.");
         }
-        return null;
     }
 
     @Override
@@ -200,18 +219,18 @@ public class InMemoryTaskManager implements TaskManager {
             SubTask subTask = subTasks.get(subTaskId);
             historyManager.add(subTask);
             return subTask;
+        } else {
+            throw new NoSuchElementException("SubTask с ID " + subTaskId + " отсутствует.");
         }
-        return null;
     }
 
     @Override
     public ArrayList<SubTask> getSubTasksInEpic(Integer epicId) {
         if (epics.containsKey(epicId)) {
             Epic epic = epics.get(epicId);
-
-            return epic.getSubTasksIds();
+            return epic.getEpicSubTasks(getSubTasks());
         } else {
-            return new ArrayList<>();
+            throw new IllegalArgumentException("Epic с ID " + epicId + " отсутствует.");
         }
     }
 

@@ -6,7 +6,8 @@ import com.google.gson.*;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import managers.TaskManager;
-import tasks.Task;
+import tasks.Epic;
+import tasks.SubTask;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -14,6 +15,7 @@ import java.time.Duration;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 
 public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
     public EpicsHandler(TaskManager taskManager) {
@@ -33,26 +35,29 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
                 case "GET":
                     try {
                         if (pathSplit.length == 2) {
-                            ArrayList<Task> tasks = taskManager.getTasks();
-                            String jsonResponse = gson.toJson(tasks);
+                            ArrayList<Epic> epics = taskManager.getEpics();
+                            String jsonResponse = gson.toJson(epics);
                             writeResponse(exchange, jsonResponse, 200);
 
                         } else if (pathSplit.length == 3) {
-                            int taskId = getId(exchange);
-                            Task task = taskManager.getTaskById(taskId);
-                            if (task != null) {
-                                String jsonResponse = gson.toJson(task);
-                                writeResponse(exchange, jsonResponse, 200);
-                            } else {
-                                writeResponse(exchange, "Задача с ID " + taskId + " не найдена.", 404);
-                            }
+                            int epicId = getId(exchange);
+                            Epic epic = taskManager.getEpicByID(epicId);
+                            String jsonResponse = gson.toJson(epic);
+                            writeResponse(exchange, jsonResponse, 200);
+
+                        } else if (pathSplit.length == 4) {
+                            int epicId = getId(exchange);
+                            Epic epic = taskManager.getEpicByID(epicId);
+                            ArrayList<SubTask> subTasks = epic.getEpicSubTasks(taskManager.getSubTasks());
+                            String jsonResponse = gson.toJson(subTasks);
+                            writeResponse(exchange, jsonResponse, 200);
                         } else {
-                            writeResponse(exchange, "Некорректный путь запроса.", 400);
+                            sendText(exchange, "Некорректный путь запроса.", 400);
                         }
-                    } catch (NumberFormatException e) {
-                        writeResponse(exchange, "Некорректный ID задачи.", 400);
+                    } catch (NoSuchElementException e) {
+                        sendText(exchange, "Ошибка нахождения элемента: " + e.getMessage(), 404);
                     } catch (Exception e) {
-                        writeResponse(exchange, "Внутренняя ошибка сервера: " + e.getMessage(), 500);
+                        sendText(exchange, "Внутренняя ошибка сервера: " + e.getMessage(), 500);
                     }
                     break;
                 case "POST":
@@ -65,31 +70,29 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
                                 throw new IllegalArgumentException("Тело запроса должно быть JSON-объектом.");
                             }
 
-                            Task task = gson.fromJson(body, Task.class);
-                            taskManager.createTask(task);
-                            writeResponse(exchange, "Задача успешно создана.", 201);
-
-                        } else if (pathSplit.length == 3) {
-                            InputStream inputStream = exchange.getRequestBody();
-                            String body = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                            JsonElement jsonElement = JsonParser.parseString(body);
-                            if (!jsonElement.isJsonObject()) {
-                                throw new IllegalArgumentException("Тело запроса должно быть JSON-объектом.");
-                            }
-
-                            Task task = gson.fromJson(body, Task.class);
-                            taskManager.updateTask(task, getId(exchange));
-                            writeResponse(exchange, "Задача успешно создана.", 201);
+                            Epic epic = gson.fromJson(body, Epic.class);
+                            taskManager.createEpic(epic);
+                            sendText(exchange, "Эпик успешно создан.", 201);
                         }
                     } catch (IllegalArgumentException e) {
-                        writeResponse(exchange, "Некорректный JSON: " + e.getMessage(), 400);
+                        sendText(exchange, "Ошибка запроса: " + e.getMessage(), 400);
+                    } catch (NoSuchElementException e) {
+                        sendText(exchange, "Ошибка нахождения элемента: " + e.getMessage(), 404);
+                    } catch (IllegalStateException e) {
+                        sendText(exchange, "Ошибка пересечения: " + e.getMessage(), 406);
                     } catch (Exception e) {
-                        writeResponse(exchange, "Внутренняя ошибка сервера: " + e.getMessage(), 500);
+                        sendText(exchange, "Внутренняя ошибка сервера: " + e.getMessage(), 500);
                     }
                     break;
                 case "DELETE":
-                    taskManager.deleteTaskById(getId(exchange));
-                    sendText(exchange, "Задача успешно удалена!", 200);
+                    try {
+                        taskManager.deleteEpicById(getId(exchange));
+                        sendText(exchange, "Эпик успешно удалён!", 200);
+                    } catch (NoSuchElementException e) {
+                        sendText(exchange, "Ошибка нахождения элемента: " + e.getMessage(), 404);
+                    } catch (Exception e) {
+                        sendText(exchange, "Внутренняя ошибка сервера: " + e.getMessage(), 500);
+                    }
                     break;
                 default:
                     sendText(exchange, "Необрабатываемый метод", 400);
