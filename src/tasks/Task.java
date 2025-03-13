@@ -1,3 +1,5 @@
+package tasks;
+
 import java.util.Objects;
 import java.time.LocalDateTime;
 import java.time.Duration;
@@ -91,15 +93,20 @@ public class Task {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
     public String toString() {
         return "{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", type='" + getType() + '\'' +
-                ", description='" + description + '\'' +
-                ", duration='" + duration + '\'' +
-                ", startTime='" + startTime + '\'' +
-                ", status=" + status +
+                "id:" + id +
+                ", name:'" + name + '\'' +
+                ", type:'" + getType() + '\'' +
+                ", description:'" + description + '\'' +
+                ", duration:'" + duration + '\'' +
+                ", startTime:'" + startTime + '\'' +
+                ", status:" + status +
                 '}';
     }
 }

@@ -1,14 +1,17 @@
+package tasks;
+
 import java.util.ArrayList;
 import java.time.LocalDateTime;
 import java.time.Duration;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class Epic extends Task {
-    private ArrayList<SubTask> subTasks;
-    private LocalDateTime endTime;
+    private ArrayList<Integer> subTasksIds;
 
     public Epic(String name, String description, TaskStatus status) {
         super(name, description, status, null, null);
-        this.subTasks = new ArrayList<>();
+        this.subTasksIds = new ArrayList<>();
     }
 
     @Override
@@ -16,47 +19,47 @@ public class Epic extends Task {
         return TaskType.EPIC;
     }
 
-    @Override
-    public LocalDateTime getEndTime() {
-        return endTime;
-    }
-
     public void addSubTask(SubTask newSubTask) {
-        subTasks.add(newSubTask);
-        updateEpicTiming();
-        updateEpicStatus();
+        subTasksIds.add(newSubTask.getId());
     }
 
-    public void updateSubTask(SubTask updatedSubTask) {
-        subTasks.removeIf(subTask -> subTask.getId().equals(updatedSubTask.getId()));
-        subTasks.add(updatedSubTask);
-        updateEpicStatus();
-        updateEpicTiming();
+    public void updateSubTask(SubTask updatedSubTask, Integer subTaskToUpdateId) {
+        subTasksIds.removeIf(subTaskId -> subTaskId.equals(subTaskToUpdateId));
+        subTasksIds.add(updatedSubTask.getId());
     }
 
-    public ArrayList<SubTask> getSubTasks() {
-        return (subTasks != null) ? subTasks : new ArrayList<>();
+    public ArrayList<Integer> getSubTasksIds() {
+        return subTasksIds;
     }
 
     public void removeSubTask(SubTask subTask) {
-        subTasks.remove(subTask);
-        updateEpicStatus();
-        updateEpicTiming();
+        subTasksIds.removeIf(id -> id.equals(subTask.getId()));
     }
 
     public void cleatAllSubTasks() {
-        subTasks.clear();
-        updateEpicTiming();
-        updateEpicStatus();
+        subTasksIds.clear();
     }
 
-    public void setSubTasks(ArrayList<SubTask> subTasks) {
-        this.subTasks = subTasks;
-        updateEpicStatus();
-        updateEpicTiming();
+    public void setSubTasksIds(ArrayList<Integer> subTasksIds) {
+        this.subTasksIds = subTasksIds;
     }
 
-    private void updateEpicStatus() {
+    public ArrayList<SubTask> getEpicSubTasks(ArrayList<SubTask> allSubTasks) {
+        return subTasksIds.stream()
+                .map(id -> allSubTasks.stream()
+                        .filter(subTask -> subTask.getId().equals(id))
+                        .findFirst()
+                        .orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public void updateEpicStatusAndTiming(ArrayList<SubTask> subTasks) {
+        updateEpicStatus(subTasks);
+        updateEpicTiming(subTasks);
+    }
+
+    private void updateEpicStatus(ArrayList<SubTask> subTasks) {
         boolean allDone = subTasks.stream().allMatch(subTask -> subTask.getStatus() == TaskStatus.DONE);
         boolean allNew = subTasks.stream().allMatch(subTask -> subTask.getStatus() == TaskStatus.NEW);
 
@@ -69,11 +72,10 @@ public class Epic extends Task {
         }
     }
 
-    private void updateEpicTiming() {
+    private void updateEpicTiming(ArrayList<SubTask> subTasks) {
         if (subTasks.isEmpty()) {
             this.setStartTime(null);
             this.setDuration(null);
-            this.endTime = null;
             return;
         }
 
@@ -83,12 +85,6 @@ public class Epic extends Task {
                 .min(LocalDateTime::compareTo)
                 .orElse(null);
 
-        LocalDateTime latestEnd = subTasks.stream()
-                .map(SubTask::getEndTime)
-                .filter(endTime -> endTime != null)
-                .max(LocalDateTime::compareTo)
-                .orElse(null);
-
         Duration totalDuration = subTasks.stream()
                 .map(SubTask::getDuration)
                 .filter(duration -> duration != null)
@@ -96,7 +92,6 @@ public class Epic extends Task {
 
         this.setStartTime(earliestStart);
         this.setDuration(totalDuration);
-        this.endTime = latestEnd;
     }
 }
 
