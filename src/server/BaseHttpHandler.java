@@ -22,6 +22,7 @@ public class BaseHttpHandler {
     public BaseHttpHandler(TaskManager taskManager) {
         this.taskManager = taskManager;
     }
+
     Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
             .registerTypeAdapter(Duration.class, new DurationAdapter())
