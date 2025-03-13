@@ -1,19 +1,11 @@
 package server;
 
-import adapters.DurationAdapter;
-import adapters.LocalDateTimeAdapter;
-import com.google.gson.*;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import managers.TaskManager;
-import tasks.Epic;
 import tasks.Task;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
