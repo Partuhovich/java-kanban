@@ -8,6 +8,7 @@ import com.sun.net.httpserver.HttpHandler;
 import managers.TaskManager;
 import tasks.Epic;
 import tasks.SubTask;
+import tasks.Task;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -63,13 +64,7 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
                 case "POST":
                     try {
                         if (pathSplit.length == 2) {
-                            InputStream inputStream = exchange.getRequestBody();
-                            String body = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                            JsonElement jsonElement = JsonParser.parseString(body);
-                            if (!jsonElement.isJsonObject()) {
-                                throw new IllegalArgumentException("Тело запроса должно быть JSON-объектом.");
-                            }
-
+                            String body = parseTaskFromRequest(exchange);
                             Epic epic = gson.fromJson(body, Epic.class);
                             taskManager.createEpic(epic);
                             sendText(exchange, "Эпик успешно создан.", 201);

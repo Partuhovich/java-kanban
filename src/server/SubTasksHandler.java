@@ -7,6 +7,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import managers.TaskManager;
 import tasks.SubTask;
+import tasks.Task;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -61,25 +62,13 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
                 case "POST":
                     try {
                         if (pathSplit.length == 2) {
-                            InputStream inputStream = exchange.getRequestBody();
-                            String body = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                            JsonElement jsonElement = JsonParser.parseString(body);
-                            if (!jsonElement.isJsonObject()) {
-                                throw new IllegalArgumentException("Тело запроса должно быть JSON-объектом.");
-                            }
-
+                            String body = parseTaskFromRequest(exchange);
                             SubTask subTask = gson.fromJson(body, SubTask.class);
                             taskManager.createSubTask(subTask);
                             sendText(exchange, "Подзадача успешно создана.", 201);
 
                         } else if (pathSplit.length == 3) {
-                            InputStream inputStream = exchange.getRequestBody();
-                            String body = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                            JsonElement jsonElement = JsonParser.parseString(body);
-                            if (!jsonElement.isJsonObject()) {
-                                throw new IllegalArgumentException("Тело запроса должно быть JSON-объектом.");
-                            }
-
+                            String body = parseTaskFromRequest(exchange);
                             SubTask subTask = gson.fromJson(body, SubTask.class);
                             taskManager.updateSubTask(subTask, getId(exchange));
                             sendText(exchange, "Подзадача успешно обновлена.", 201);

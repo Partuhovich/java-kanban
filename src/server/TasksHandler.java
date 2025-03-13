@@ -6,6 +6,7 @@ import com.google.gson.*;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import managers.TaskManager;
+import tasks.Epic;
 import tasks.Task;
 
 import java.io.InputStream;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
 public class TasksHandler extends BaseHttpHandler implements HttpHandler {
+
     public TasksHandler(TaskManager taskManager) {
         super(taskManager);
     }
@@ -26,10 +28,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
         try {
             String method = exchange.getRequestMethod();
             String[] pathSplit = exchange.getRequestURI().getPath().split("/");
-            Gson gson = new GsonBuilder()
-                    .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                    .registerTypeAdapter(Duration.class, new DurationAdapter())
-                    .create();
+
             switch (method) {
                 case "GET":
                     try {
@@ -61,24 +60,13 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                 case "POST":
                     try {
                         if (pathSplit.length == 2) {
-                            InputStream inputStream = exchange.getRequestBody();
-                            String body = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                            JsonElement jsonElement = JsonParser.parseString(body);
-                            if (!jsonElement.isJsonObject()) {
-                                throw new IllegalArgumentException("Тело запроса должно быть JSON-объектом.");
-                            }
+                            String body = parseTaskFromRequest(exchange);
                             Task task = gson.fromJson(body, Task.class);
                             taskManager.createTask(task);
                             sendText(exchange, "Задача успешно создана.", 201);
 
                         } else if (pathSplit.length == 3) {
-                            InputStream inputStream = exchange.getRequestBody();
-                            String body = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                            JsonElement jsonElement = JsonParser.parseString(body);
-                            if (!jsonElement.isJsonObject()) {
-                                throw new IllegalArgumentException("Тело запроса должно быть JSON-объектом.");
-                            }
-
+                            String body = parseTaskFromRequest(exchange);
                             Task task = gson.fromJson(body, Task.class);
                             taskManager.updateTask(task, getId(exchange));
                             sendText(exchange, "Задача успешно создана.", 201);
@@ -103,5 +91,6 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
         } catch (Exception e) {
             sendInternalError(exchange);
         }
+
     }
 }

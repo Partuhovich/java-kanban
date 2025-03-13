@@ -1,11 +1,21 @@
 package server;
 
+import adapters.DurationAdapter;
+import adapters.LocalDateTimeAdapter;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.sun.net.httpserver.HttpExchange;
 import managers.TaskManager;
+import tasks.Task;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 public class BaseHttpHandler {
     TaskManager taskManager;
@@ -13,6 +23,11 @@ public class BaseHttpHandler {
     public BaseHttpHandler(TaskManager taskManager) {
         this.taskManager = taskManager;
     }
+    Gson gson = new GsonBuilder()
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .registerTypeAdapter(Duration.class, new DurationAdapter())
+            .create();
+
 
     protected void sendText(HttpExchange exchange, String text, int statusCode) throws IOException {
         byte[] response = text.getBytes(StandardCharsets.UTF_8);
@@ -32,16 +47,6 @@ public class BaseHttpHandler {
         exchange.close();
     }
 
-    protected void sendNotFound(HttpExchange exchange) throws IOException {
-        String response = "Объект не найден.";
-        sendText(exchange, response, 404);
-    }
-
-    protected void sendHasInteractions(HttpExchange exchange) throws IOException {
-        String response = "Задача пересекается с существующими.";
-        sendText(exchange, response, 406);
-    }
-
     protected void sendInternalError(HttpExchange exchange) throws IOException {
         String response = "Внутренняя ошибка сервера.";
         sendText(exchange, response, 500);
@@ -55,4 +60,18 @@ public class BaseHttpHandler {
             return null;
         }
     }
+
+    protected String parseTaskFromRequest(HttpExchange exchange) throws IOException {
+        InputStream inputStream = exchange.getRequestBody();
+        String body = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+        JsonElement jsonElement = JsonParser.parseString(body);
+
+        if (!jsonElement.isJsonObject()) {
+            throw new IllegalArgumentException("Тело запроса должно быть JSON-объектом.");
+        }
+
+        return body;
+    }
+
+
 }

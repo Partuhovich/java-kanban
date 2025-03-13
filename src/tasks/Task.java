@@ -94,7 +94,7 @@ public class Task {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id); // Хэш-код на основе ID
+        return Objects.hash(id);
     }
 
     @Override
